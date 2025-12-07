@@ -1,38 +1,26 @@
-import tkinter as tk
-from kelasf.login import LoginFrame
-from kelasf.dashboard import DashboardFrame
+import time
+import schedule
+from bot import BinanceBot
+import config
 
-class MainApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.geometry("400x300")
-        self.root.title("Aplikasi GUI")
-        
-        self.current_frame = None
-        self.show_login()
-        
-    def show_login(self):
-        if self.current_frame:
-            self.current_frame.destroy()
-            
-        self.current_frame = LoginFrame(
-            self.root, 
-            login_callback=self.show_dashboard
-        )
-        self.current_frame.pack(padx=20, pady=20)
-        
-    def show_dashboard(self, username):
-        if self.current_frame:
-            self.current_frame.destroy()
-            
-        self.current_frame = DashboardFrame(
-            self.root,
-            username=username,
-            logout_callback=self.show_login
-        )
-        self.current_frame.pack()
+def job():
+    try:
+        my_bot = BinanceBot()
+        my_bot.run_strategy()
+    except Exception as e:
+        print(f"Terjadi kesalahan utama: {e}")
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = MainApp(root)
-    root.mainloop()
+    print("=== Binance Trading Bot Started ===")
+    print(f"Target Symbol: {config.SYMBOL}")
+    print("Menunggu jadwal eksekusi selanjutnya...")
+    
+    # Jalankan sekali saat startup untuk pengecekan
+    job()
+
+    # Jadwal pengecekan setiap 1 menit (sesuaikan dengan kebutuhan)
+    schedule.every(10).seconds.do(job)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
